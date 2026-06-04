@@ -28,13 +28,22 @@ const Api = (() => {
   const put = (path, body) => request('PUT', path, body);
   const del = (path) => request('DELETE', path);
 
+  /* ── AUTH ── */
+  const Auth = {
+    login: (username, password) => post('/auth/login', { username, password }),
+    signup: (data) => post('/auth/signup', data),
+    getPending: () => get('/auth/pending'),
+    getUsers: () => get('/auth/users'),
+    approve: (username) => put(`/auth/approve/${username}`),
+    reject: (username) => del(`/auth/reject/${username}`),
+  };
+
   const Bins = {
     getAll: () => get('/bins'),
     add: (data) => post('/bins', data),
     updateFill: (id, fill) => put(`/bins/${id}/fill`, { fill }),
     remove: (id) => del(`/bins/${id}`),
     collect: (id) => post(`/bins/${id}/collect`),
-    randomize: () => post('/bins/randomize'),
   };
 
   /* ── TRUCKS ── */
@@ -64,5 +73,5 @@ const Api = (() => {
     markAllRead: (role, driverId) => put('/notifications/mark-all-read', { role, driverId }),
   };
 
-  return { Bins, Trucks, Reports, Notifs };
+  return { Auth, Bins, Trucks, Reports, Notifs };
 })();

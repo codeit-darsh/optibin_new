@@ -55,6 +55,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         <span>Visualization</span>
       </a>
+      <a href="#" class="nav-item" data-tab="users">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Users</span>
+        <span id="pendingBadge" style="background:#f59e0b;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:auto;display:none">0</span>
+      </a>
     </nav>
     <div class="sidebar-footer">
       <span class="status-dot" id="simStatusDot"></span>
@@ -75,7 +80,7 @@
       <div class="topbar-right">
         <span class="last-updated" id="lastUpdated">Updated just now</span>
         <button class="btn btn-outline" id="refreshBtn">&#8635; Refresh</button>
-        <button class="btn btn-outline" id="randomizeBtn" title="Set all bins to random fill levels">🎲 Randomize Data</button>
+
       </div>
     </header>
 
@@ -246,6 +251,28 @@
         </div>
       </div>
       <div id="reportsContainer" style="display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <!-- TAB: USERS -->
+    <section class="tab-panel" id="tabUsers">
+      <!-- Pending Approvals -->
+      <div id="pendingSection" style="margin-bottom:20px">
+        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #fcd34d;border-radius:12px;padding:18px 20px">
+          <h3 style="margin:0 0 12px;font-size:15px;color:#92400e;display:flex;align-items:center;gap:8px">⏳ Pending Driver Approvals <span id="pendingCount" style="background:#f59e0b;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700">0</span></h3>
+          <div id="pendingList" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-bottom:16px">
+        <h2 class="section-title">Registered Users</h2>
+        <button class="btn btn-outline" onclick="window.refreshUsers()">&#8635; Refresh</button>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Truck</th><th>Status</th></tr></thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
     </section>
 
   </main>

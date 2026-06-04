@@ -8,7 +8,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { connect, Bins, Trucks, Reports, Notifications } = require('./database');
+const { connect, Bins, Trucks, Reports, Notifications, Users } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,10 +69,7 @@ app.post('/api/bins/:id/collect', async (req, res) => {
   ok(res, await Bins.getById(req.params.id));
 });
 
-// Randomize ALL bin fill levels (5–100% random)
-app.post('/api/bins/randomize', async (req, res) => {
-  ok(res, await Bins.randomize());
-});
+
 
 /* ============================================================
    TRUCKS
@@ -131,15 +128,34 @@ app.post('/api/reports', async (req, res) => {
     timestamp: new Date().toISOString()
   });
 
-  // Auto-create a notification for all roles
+  // Notification for admin
   await Notifications.insert({
     id: 'NTF-' + uid(),
     title: `🚨 Citizen Report: ${type}`,
     message: `${binId} at ${binLocation} — "${description}"`,
     type: 'report', binId, reportId: id,
-    forRole: 'all', forDriver: null,
+    forRole: 'admin', forDriver: null,
     timestamp: new Date().toISOString(),
   });
+
+  // Find the bin's zone and match it to a truck driver
+  const bin = await Bins.getById(binId);
+  if (bin) {
+    const trucks = await Trucks.getAll();
+    const zoneTruck = trucks.find(t => t.zone === bin.zone);
+    if (zoneTruck) {
+      // Targeted notification for the zone's driver
+      const priority = urgent ? '🔴 URGENT' : bin.fill > 75 ? '🟠 HIGH' : '🟡 NORMAL';
+      await Notifications.insert({
+        id: 'NTF-' + uid(),
+        title: `${urgent ? '🚨 URGENT' : '📢'} Citizen Report: ${type}`,
+        message: `${priority} · ${binId} at ${binLocation} (${bin.fill.toFixed(0)}% full) — "${description}"`,
+        type: 'report', binId, reportId: id,
+        forRole: 'driver', forDriver: zoneTruck.id,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
 
   ok(res, await Reports.getById(id));
 });
@@ -184,6 +200,69 @@ app.put('/api/notifications/mark-all-read', async (req, res) => {
 });
 
 /* ============================================================
+   AUTH — login, signup, approval
+============================================================ */
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return err(res, 'Username and password are required');
+  const user = await Users.findByCredentials(username, password);
+  if (!user) return err(res, 'Invalid username or password', 401);
+  if (user.status === 'pending') return err(res, 'Your account is awaiting admin approval', 403);
+  ok(res, { role: user.role, name: user.name, truckId: user.truckId });
+});
+
+app.post('/api/auth/signup', async (req, res) => {
+  const { username, password, role, name, truckId } = req.body;
+  if (!username || !password || !role || !name) return err(res, 'All fields are required');
+  if (await Users.getByUsername(username)) return err(res, 'Username already taken');
+  const status = role === 'driver' ? 'pending' : 'active';
+  await Users.insert({ username, password, role, name, truckId: truckId || null, status });
+  if (status === 'pending') {
+    // Notify admin about new driver registration
+    await Notifications.insert({
+      id: 'NTF-' + uid(),
+      title: '👤 New Driver Registration',
+      message: `${name} (${username}) has registered as a driver for ${truckId || 'unassigned'} — awaiting your approval`,
+      type: 'info', binId: null, reportId: null,
+      forRole: 'admin', forDriver: null,
+      timestamp: new Date().toISOString(),
+    });
+  }
+  ok(res, { message: status === 'pending' ? 'Registration submitted — awaiting admin approval' : 'Account created successfully', status });
+});
+
+app.get('/api/auth/pending', async (req, res) => {
+  ok(res, await Users.getPending());
+});
+
+app.get('/api/auth/users', async (req, res) => {
+  ok(res, await Users.getAll());
+});
+
+app.put('/api/auth/approve/:username', async (req, res) => {
+  const user = await Users.getByUsername(req.params.username);
+  if (!user) return err(res, 'User not found', 404);
+  await Users.approve(req.params.username);
+  // Notify the driver
+  if (user.truckId) {
+    await Notifications.insert({
+      id: 'NTF-' + uid(),
+      title: '✅ Account Approved',
+      message: `Your driver account has been approved! You can now log in.`,
+      type: 'info', binId: null, reportId: null,
+      forRole: 'driver', forDriver: user.truckId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+  ok(res, { username: req.params.username });
+});
+
+app.delete('/api/auth/reject/:username', async (req, res) => {
+  await Users.reject(req.params.username);
+  ok(res, { username: req.params.username });
+});
+
+/* ============================================================
    DEFAULT ROUTE → login page
 ============================================================ */
 app.get('/', (req, res) => {
@@ -191,7 +270,7 @@ app.get('/', (req, res) => {
 });
 
 /* ============================================================
-   START — connect to MongoDB first, then listen
+   START — connect to database first, then listen
 ============================================================ */
 connect().then(() => {
   app.listen(PORT, () => {
@@ -199,6 +278,6 @@ connect().then(() => {
     console.log(`    Open → http://localhost:${PORT}/login.html\n`);
   });
 }).catch(e => {
-  console.error('❌ Failed to connect to MongoDB:', e.message);
+  console.error('❌ Failed to connect to database:', e.message);
   process.exit(1);
 });

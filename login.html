@@ -9,7 +9,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
-      background: #f0f4f8;
+      background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -19,47 +19,63 @@
     }
     .brand {
       display: flex; align-items: center; gap: 12px;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
     .brand-icon {
-      width: 48px; height: 48px;
-      background: #3b6ef6; border-radius: 12px;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, #3b6ef6, #6366f1);
+      border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 24px; color: #fff;
+      font-size: 26px; color: #fff;
+      box-shadow: 0 4px 14px rgba(59,110,246,0.3);
     }
     .brand-name { font-size: 28px; font-weight: 700; color: #1a2035; }
     .brand-sub  { font-size: 13px; color: #6b7a99; }
 
-    h2 { font-size: 20px; font-weight: 700; color: #1a2035; text-align: center; margin-bottom: 6px; }
-    .subtitle { font-size: 13px; color: #6b7a99; text-align: center; margin-bottom: 28px; }
+    /* Mode Toggle */
+    .mode-toggle {
+      display: flex; background: #e2e8f0; border-radius: 10px;
+      padding: 3px; margin-bottom: 24px; gap: 2px;
+    }
+    .mode-btn {
+      padding: 10px 28px; border-radius: 8px; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; color: #6b7a99; background: transparent;
+      transition: all .2s;
+    }
+    .mode-btn.active {
+      background: #fff; color: #1a2035;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
 
+    /* Role Cards */
     .role-grid {
       display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 16px; width: 100%; max-width: 780px; margin-bottom: 24px;
+      gap: 14px; width: 100%; max-width: 700px; margin-bottom: 24px;
     }
     .role-card {
-      background: #fff;
-      border: 2px solid #e4e8ef;
-      border-radius: 16px;
-      padding: 28px 20px;
-      text-align: center;
-      cursor: pointer;
+      background: #fff; border: 2px solid #e4e8ef;
+      border-radius: 14px; padding: 22px 16px;
+      text-align: center; cursor: pointer;
       transition: all 0.2s ease;
     }
-    .role-card:hover { border-color: var(--rc); box-shadow: 0 4px 20px rgba(0,0,0,0.10); transform: translateY(-3px); }
+    .role-card:hover { border-color: var(--rc); box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
     .role-card.selected { border-color: var(--rc); background: var(--rcl); }
-    .role-icon { font-size: 38px; margin-bottom: 12px; }
-    .role-title { font-size: 15px; font-weight: 700; color: #1a2035; margin-bottom: 6px; }
-    .role-desc  { font-size: 12px; color: #6b7a99; line-height: 1.5; }
+    .role-icon { font-size: 34px; margin-bottom: 10px; }
+    .role-title { font-size: 14px; font-weight: 700; color: #1a2035; margin-bottom: 4px; }
+    .role-desc  { font-size: 11px; color: #6b7a99; line-height: 1.4; }
 
+    /* Form */
     .login-form {
       background: #fff; border: 1px solid #e4e8ef;
       border-radius: 16px; padding: 28px;
       width: 100%; max-width: 400px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: none;
     }
-    .form-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; color: #1a2035; }
-    label { font-size: 13px; font-weight: 500; color: #6b7a99; display: block; margin-bottom: 6px; }
+    .login-form.active { display: block; }
+    .form-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; color: #1a2035; display:flex; align-items:center; gap:8px; }
+    label { font-size: 13px; font-weight: 500; color: #6b7a99; display: block; margin-bottom: 5px; }
     input, select {
       width: 100%; padding: 10px 12px;
       border: 1px solid #e4e8ef; border-radius: 8px;
@@ -74,14 +90,38 @@
       border: none; border-radius: 8px;
       font-size: 14px; font-weight: 600;
       cursor: pointer; font-family: inherit;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
     .btn-login:hover { background: #2d5de6; }
-    .error { font-size: 12px; color: #ef4444; margin-bottom: 10px; display: none; }
+    .btn-login:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-login.green { background: #0d9488; }
+    .btn-login.green:hover { background: #0f766e; }
+    .btn-login.amber { background: #f59e0b; color:#1a2035; }
+    .btn-login.amber:hover { background: #d97706; }
 
-    /* forms per role */
-    .form-section { display: none; }
-    .form-section.active { display: block; }
+    .msg {
+      font-size: 12px; padding: 10px 12px; border-radius: 8px;
+      margin-bottom: 14px; display: none; line-height: 1.4;
+    }
+    .msg.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; display: block; }
+    .msg.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; display: block; }
+    .msg.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; display: block; }
+
+    .truck-select-note {
+      font-size: 11px; color: #6b7a99; margin: -10px 0 14px;
+      font-style: italic;
+    }
+
+    .divider {
+      text-align: center; font-size: 12px; color: #9aa3ba;
+      margin: 16px 0; position: relative;
+    }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%;
+      width: 40%; height: 1px; background: #e4e8ef;
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
 
     @media (max-width: 640px) {
       .role-grid { grid-template-columns: 1fr; }
@@ -97,65 +137,64 @@
     </div>
   </div>
 
-  <h2>Welcome — Choose Your Role</h2>
-  <p class="subtitle">Select how you'd like to access OptiBin today</p>
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeLogin" onclick="switchMode('login')">Login</button>
+    <button class="mode-btn" id="modeSignup" onclick="switchMode('signup')">Sign Up</button>
+  </div>
 
+  <!-- Role Selection -->
   <div class="role-grid">
     <div class="role-card" id="rcAdmin" style="--rc:#3b6ef6;--rcl:#eef2ff" onclick="selectRole('admin')">
       <div class="role-icon">🛡️</div>
       <div class="role-title">Admin</div>
-      <div class="role-desc">Manage bins & trucks, view all routes, monitor reports and fleet status</div>
+      <div class="role-desc">Manage bins, trucks, users & monitor reports</div>
     </div>
     <div class="role-card" id="rcDriver" style="--rc:#0d9488;--rcl:#f0fdfb" onclick="selectRole('driver')">
       <div class="role-icon">🚛</div>
       <div class="role-title">Truck Driver</div>
-      <div class="role-desc">View your assigned route, get citizen alerts, mark bins as collected</div>
+      <div class="role-desc">View routes, collect bins, receive citizen alerts</div>
     </div>
     <div class="role-card" id="rcCitizen" style="--rc:#f59e0b;--rcl:#fffbeb" onclick="selectRole('citizen')">
       <div class="role-icon">🏘️</div>
       <div class="role-title">Citizen</div>
-      <div class="role-desc">Report overflowing or damaged bins in your area for quick action</div>
+      <div class="role-desc">Report overflowing or damaged bins in your area</div>
     </div>
   </div>
 
-  <!-- Admin Login Form -->
-  <div class="login-form" id="formAdmin" style="display:none">
-    <div class="form-title">🛡️ Admin Login</div>
-    <div class="error" id="adminError">Incorrect username or password.</div>
+  <!-- LOGIN FORM -->
+  <div class="login-form" id="loginForm">
+    <div class="form-title" id="loginTitle">🔒 Login</div>
+    <div class="msg" id="loginMsg"></div>
     <label>Username</label>
-    <input type="text" id="adminUser" placeholder="admin" />
+    <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username" />
     <label>Password</label>
-    <input type="password" id="adminPass" placeholder="••••••••" />
-    <button class="btn-login" onclick="loginAdmin()">Login as Admin</button>
+    <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" />
+    <button class="btn-login" id="loginBtn" onclick="handleLogin()">Login</button>
   </div>
 
-  <!-- Driver Login Form -->
-  <div class="login-form" id="formDriver" style="display:none">
-    <div class="form-title">🚛 Driver Login</div>
-    <label>Your Name</label>
-    <input type="text" id="driverName" placeholder="e.g. Ramesh Kumar" />
-    <label>Select Your Truck</label>
-    <select id="driverTruck">
-      <option value="TRK-A">TRK-A — Truck Alpha (North Delhi)</option>
-      <option value="TRK-B">TRK-B — Truck Beta (West Delhi)</option>
-      <option value="TRK-C">TRK-C — Truck Gamma (Central Delhi)</option>
-      <option value="TRK-D">TRK-D — Truck Delta (South Delhi)</option>
-      <option value="TRK-E">TRK-E — Truck Echo (East Delhi)</option>
-      <option value="TRK-F">TRK-F — Truck Foxtrot (Noida)</option>
-      <option value="TRK-G">TRK-G — Truck Golf (Ghaziabad)</option>
-      <option value="TRK-H">TRK-H — Truck Hotel (Gurugram)</option>
-    </select>
-    <button class="btn-login" style="background:#0d9488" onclick="loginDriver()">Login as Driver</button>
+  <!-- SIGNUP FORM -->
+  <div class="login-form" id="signupForm">
+    <div class="form-title" id="signupTitle">✨ Create Account</div>
+    <div class="msg" id="signupMsg"></div>
+    <label>Full Name</label>
+    <input type="text" id="signupName" placeholder="e.g. Ramesh Kumar" />
+    <label>Username</label>
+    <input type="text" id="signupUser" placeholder="Choose a username" autocomplete="username" />
+    <label>Password</label>
+    <input type="password" id="signupPass" placeholder="Choose a password" autocomplete="new-password" />
+    <!-- Driver-only: truck select -->
+    <div id="truckSelectWrap" style="display:none">
+      <label>Assign Truck</label>
+      <select id="signupTruck">
+        <option value="">-- Loading trucks --</option>
+      </select>
+      <div class="truck-select-note">Your registration will need admin approval before you can log in.</div>
+    </div>
+    <button class="btn-login" id="signupBtn" onclick="handleSignup()">Create Account</button>
   </div>
 
-  <!-- Citizen Access -->
-  <div class="login-form" id="formCitizen" style="display:none">
-    <div class="form-title">🏘️ Citizen Access</div>
-    <label>Your Name (optional)</label>
-    <input type="text" id="citizenName" placeholder="Anonymous" />
-    <button class="btn-login" style="background:#f59e0b;color:#1a2035" onclick="loginCitizen()">Continue as Citizen</button>
-  </div>
-
+  <script src="api.js"></script>
   <script src="auth.js"></script>
   <script>
     // If already logged in, redirect
@@ -164,45 +203,166 @@
     if (role === 'driver')  window.location.href = 'driver.html';
     if (role === 'citizen') window.location.href = 'citizen.html';
 
+    let currentMode = 'login';
     let currentRole = null;
-    const formMap = { admin:'formAdmin', driver:'formDriver', citizen:'formCitizen' };
-    const cardMap = { admin:'rcAdmin', driver:'rcDriver', citizen:'rcCitizen' };
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('modeLogin').classList.toggle('active', mode === 'login');
+      document.getElementById('modeSignup').classList.toggle('active', mode === 'signup');
+      // Show correct form if role is selected
+      if (currentRole) showForm();
+    }
 
     function selectRole(role) {
       currentRole = role;
-      // Toggle card selection
       document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-      document.getElementById(cardMap[role]).classList.add('selected');
-      // Show correct form
-      ['formAdmin','formDriver','formCitizen'].forEach(id => {
-        document.getElementById(id).style.display = 'none';
-      });
-      document.getElementById(formMap[role]).style.display = 'block';
+      document.getElementById({ admin:'rcAdmin', driver:'rcDriver', citizen:'rcCitizen' }[role]).classList.add('selected');
+      showForm();
+      // Load trucks for driver signup
+      if (role === 'driver') loadTrucks();
     }
 
-    function loginAdmin() {
-      const user = document.getElementById('adminUser').value.trim();
-      const pass = document.getElementById('adminPass').value.trim();
-      if (user === 'admin' && pass === 'admin123') {
-        Auth.setRole('admin', { name: 'Admin' });
-        window.location.href = 'index.html';
+    function showForm() {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      // Clear messages
+      document.getElementById('loginMsg').className = 'msg';
+      document.getElementById('signupMsg').className = 'msg';
+
+      const icons = { admin:'🛡️', driver:'🚛', citizen:'🏘️' };
+      const labels = { admin:'Admin', driver:'Driver', citizen:'Citizen' };
+      const colors = { admin:'', driver:'green', citizen:'amber' };
+
+      if (currentMode === 'login') {
+        loginForm.classList.add('active');
+        signupForm.classList.remove('active');
+        document.getElementById('loginTitle').innerHTML = `🔒 ${labels[currentRole]} Login`;
+        document.getElementById('loginBtn').className = `btn-login ${colors[currentRole]}`;
+        document.getElementById('loginBtn').textContent = `Login as ${labels[currentRole]}`;
       } else {
-        document.getElementById('adminError').style.display = 'block';
+        signupForm.classList.add('active');
+        loginForm.classList.remove('active');
+        document.getElementById('signupTitle').innerHTML = `✨ ${labels[currentRole]} Sign Up`;
+        document.getElementById('signupBtn').className = `btn-login ${colors[currentRole]}`;
+        document.getElementById('signupBtn').textContent = currentRole === 'driver'
+          ? 'Register (Requires Admin Approval)'
+          : `Create ${labels[currentRole]} Account`;
+        document.getElementById('truckSelectWrap').style.display = currentRole === 'driver' ? 'block' : 'none';
       }
     }
 
-    function loginDriver() {
-      const name = document.getElementById('driverName').value.trim() || 'Driver';
-      const truck = document.getElementById('driverTruck').value;
-      Auth.setRole('driver', { driverId: truck, name });
-      window.location.href = 'driver.html';
+    async function loadTrucks() {
+      try {
+        const trucks = await Api.Trucks.getAll();
+        const sel = document.getElementById('signupTruck');
+        sel.innerHTML = '<option value="">-- Select your truck --</option>';
+        trucks.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = `${t.id} — ${t.name} (${t.zone})`;
+          sel.appendChild(opt);
+        });
+      } catch(e) {
+        console.warn('Could not load trucks:', e.message);
+      }
     }
 
-    function loginCitizen() {
-      const name = document.getElementById('citizenName').value.trim() || 'Anonymous';
-      Auth.setRole('citizen', { name });
-      window.location.href = 'citizen.html';
+    async function handleLogin() {
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value.trim();
+      const msgEl = document.getElementById('loginMsg');
+
+      if (!username || !password) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = 'Please enter both username and password.';
+        return;
+      }
+
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = 'Logging in…';
+
+      try {
+        const data = await Api.Auth.login(username, password);
+        // Verify role matches selection
+        if (currentRole && data.role !== currentRole) {
+          msgEl.className = 'msg error';
+          msgEl.textContent = `This account is registered as "${data.role}", not "${currentRole}". Please select the correct role.`;
+          return;
+        }
+        Auth.setRole(data.role, { driverId: data.truckId, name: data.name });
+        const dest = { admin:'index.html', driver:'driver.html', citizen:'citizen.html' };
+        window.location.href = dest[data.role] || 'login.html';
+      } catch(e) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = e.message || 'Login failed.';
+      } finally {
+        btn.disabled = false;
+        const labels = { admin:'Admin', driver:'Driver', citizen:'Citizen' };
+        btn.textContent = `Login as ${labels[currentRole] || 'User'}`;
+      }
     }
+
+    async function handleSignup() {
+      const name = document.getElementById('signupName').value.trim();
+      const username = document.getElementById('signupUser').value.trim();
+      const password = document.getElementById('signupPass').value.trim();
+      const truckId = document.getElementById('signupTruck').value;
+      const msgEl = document.getElementById('signupMsg');
+
+      if (!name || !username || !password) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (currentRole === 'driver' && !truckId) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = 'Please select a truck.';
+        return;
+      }
+
+      const btn = document.getElementById('signupBtn');
+      btn.disabled = true; btn.textContent = 'Creating account…';
+
+      try {
+        const result = await Api.Auth.signup({
+          username, password,
+          role: currentRole,
+          name,
+          truckId: currentRole === 'driver' ? truckId : null,
+        });
+
+        if (result.status === 'pending') {
+          msgEl.className = 'msg info';
+          msgEl.textContent = '⏳ ' + result.message;
+        } else {
+          msgEl.className = 'msg success';
+          msgEl.textContent = '✅ ' + result.message + ' — You can now log in.';
+          // Switch to login mode after 1.5s
+          setTimeout(() => switchMode('login'), 1500);
+        }
+        document.getElementById('signupName').value = '';
+        document.getElementById('signupUser').value = '';
+        document.getElementById('signupPass').value = '';
+      } catch(e) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = e.message || 'Signup failed.';
+      } finally {
+        btn.disabled = false;
+        const labels = { admin:'Admin', driver:'Driver', citizen:'Citizen' };
+        btn.textContent = currentRole === 'driver'
+          ? 'Register (Requires Admin Approval)'
+          : `Create ${labels[currentRole]} Account`;
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (currentMode === 'login') handleLogin();
+        else handleSignup();
+      }
+    });
   </script>
 </body>
 </html>

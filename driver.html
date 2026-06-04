@@ -242,10 +242,11 @@
 
   async function refreshRoute() {
     allBins = await Api.Bins.getAll();
-    const bins = allBins.filter(b => b.fill >= 30);
-    // Simple distance-sorted greedy route
     const truckResp = await Api.Trucks.getAll();
-    const truck = truckResp.find(t => t.id === myTruckId) || { lat:28.6270, lng:77.3300 };
+    const truck = truckResp.find(t => t.id === myTruckId) || { lat:28.6270, lng:77.3300, zone:'All' };
+    const myZone = truck.zone || 'All';
+    // Only bins in THIS truck's zone with fill >= 30%
+    const bins = allBins.filter(b => b.fill >= 30 && (myZone === 'All' || b.zone === myZone));
     // Sort by fill descending × distance
     function dist(a, b) { const dLat=a.lat-b.lat, dLng=a.lng-b.lng; return Math.sqrt(dLat*dLat+dLng*dLng); }
     const scored = bins.map(b => ({
@@ -253,9 +254,11 @@
       score: (b.fill/100)*0.55 + (1/(dist(truck, b)+0.001))*0.45,
     })).sort((a,b)=>b.score-a.score);
     myRoute = scored.map(b => b.id);
+    doneBins = new Set(); // Reset collected bins on fresh route
     localStorage.setItem(ROUTE_KEY, JSON.stringify(myRoute));
+    localStorage.setItem(DONE_KEY, JSON.stringify([]));
     render();
-    showToast('Route refreshed from database', 'success');
+    showToast(`Route refreshed — ${myRoute.length} bins in ${myZone}`, 'success');
   }
 
   /* ---- MAP ---- */
@@ -429,9 +432,13 @@
       message: `${myTruckId} (${driverName}) collected ${binId}`,
       type: 'collected', binId, forRole: 'admin',
     });
-    // Refresh local bin data
-    allBins = await Api.Bins.getAll();
-    render();
+    // Update the bin's fill in local data (set to near 0) but keep the same route
+    const bin = allBins.find(b => b.id === binId);
+    if (bin) bin.fill = Math.floor(Math.random() * 8);
+    // Re-render without regenerating the route
+    renderRoutePanel();
+    renderNotifs();
+    await renderMap();
   }
 
   /* ---- NOTIFICATIONS ---- */
@@ -525,9 +532,12 @@
       document.getElementById('locationText').textContent =
         `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} — recalculating route…`;
 
-      // Refresh route from new position (keep doneBins — don't reset)
+      // Refresh route from new position — only bins in MY ZONE (keep doneBins)
       allBins = await Api.Bins.getAll();
-      const bins = allBins.filter(b => b.fill >= 30 && !doneBins.has(b.id));
+      const truckResp2 = await Api.Trucks.getAll();
+      const truckData2 = truckResp2.find(t => t.id === myTruckId) || { zone: 'All' };
+      const myZone = truckData2.zone || 'All';
+      const bins = allBins.filter(b => b.fill >= 30 && !doneBins.has(b.id) && (myZone === 'All' || b.zone === myZone));
       function dist(a, b) { const dLat=a.lat-b.lat, dLng=a.lng-b.lng; return Math.sqrt(dLat*dLat+dLng*dLng); }
       const pos = { lat, lng };
       const scored = bins.map(b => ({

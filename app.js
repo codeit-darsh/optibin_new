@@ -283,6 +283,7 @@ const AppController = (() => {
       route: ['Route Optimizer', 'Priority-based routing with real road paths'],
       visual: ['Visualization', 'Anti-gravity fill level display'],
       reports: ['Citizen Reports', 'Emergency alerts and citizen-submitted reports'],
+      users: ['User Management', 'Approve drivers · view registered users'],
     };
     document.getElementById('pageTitle').textContent = titles[tab]?.[0] || tab;
     document.getElementById('pageSubtitle').textContent = titles[tab]?.[1] || '';
@@ -292,6 +293,7 @@ const AppController = (() => {
     if (tab === 'visual') { renderVisualGrid(); renderVisualCanvas(); }
     if (tab === 'route') { initRoutePreviewMap(); setTimeout(() => routePreviewMap?.invalidateSize(), 200); }
     if (tab === 'reports') { ReportStore.refresh().then(() => { renderReports(); renderEmergencyAlerts(); }); }
+    if (tab === 'users') { renderUsersTab(); }
   }
 
   /* ============================================================
@@ -413,6 +415,70 @@ const AppController = (() => {
   /* ============================================================
      INIT
   ============================================================ */
+  /* ============================================================
+     USERS TAB — pending approvals + registered users
+  ============================================================ */
+  async function renderUsersTab() {
+    await Promise.all([renderPendingDrivers(), renderAllUsers()]);
+  }
+
+  async function renderPendingDrivers() {
+    try {
+      const pending = await Api.Auth.getPending();
+      const countEl = document.getElementById('pendingCount');
+      const listEl = document.getElementById('pendingList');
+      const badge = document.getElementById('pendingBadge');
+
+      countEl.textContent = pending.length;
+      if (badge) {
+        if (pending.length > 0) { badge.style.display = 'inline'; badge.textContent = pending.length; }
+        else badge.style.display = 'none';
+      }
+
+      if (!pending.length) {
+        listEl.innerHTML = '<div style="color:#16a34a;font-size:12px;font-weight:600;padding:8px 0">✅ No pending requests</div>';
+        return;
+      }
+
+      listEl.innerHTML = pending.map(u => {
+        return `<div style="background:#fff;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700">🚛</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13px;color:#1a2035">${u.name}</div>
+            <div style="font-size:11px;color:#6b7a99">@${u.username} · Truck: ${u.truckId || 'None'}</div>
+          </div>
+          <button onclick="window.approveUser('${u.username}')" style="padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;background:#dcfce7;color:#15803d;border:1px solid #86efac;cursor:pointer;font-family:inherit">✓ Approve</button>
+          <button onclick="window.rejectUser('${u.username}')" style="padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;cursor:pointer;font-family:inherit">✗ Reject</button>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      console.error('Failed to load pending users:', e);
+    }
+  }
+
+  async function renderAllUsers() {
+    try {
+      const users = await Api.Auth.getUsers();
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = users.map(u => {
+        const roleColors = { admin: '#3b6ef6', driver: '#0d9488', citizen: '#f59e0b' };
+        const statusColors = { active: '#22c55e', pending: '#f59e0b' };
+        return `<tr>
+          <td style="font-weight:600">@${u.username}</td>
+          <td>${u.name}</td>
+          <td><span style="background:${roleColors[u.role]}20;color:${roleColors[u.role]};padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">${u.role}</span></td>
+          <td>${u.truckId || '—'}</td>
+          <td><span style="background:${statusColors[u.status]}20;color:${statusColors[u.status]};padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">${u.status}</span></td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      console.error('Failed to load users:', e);
+    }
+  }
+
+  /* ============================================================
+     INIT
+  ============================================================ */
   async function init() {
     document.getElementById('binGrid').innerHTML = '<p style="color:var(--text-muted);padding:20px;grid-column:1/-1">⏳ Loading from database…</p>';
     await Promise.all([BinStore.init(), TruckStore.init(), ReportStore.init()]);
@@ -422,6 +488,23 @@ const AppController = (() => {
     window.renderReports = () => { renderReports(); renderEmergencyAlerts(); };
     window.resolveReport = async id => { await ReportStore.updateStatus(id, 'resolved'); renderReports(); UI.showToast('Resolved.', 'success'); };
     window.ackReport = async id => { await ReportStore.updateStatus(id, 'acknowledged'); renderReports(); UI.showToast('Acknowledged.', 'info'); };
+    window.approveUser = async (username) => {
+      if (!confirm(`Approve driver "${username}"?`)) return;
+      try {
+        await Api.Auth.approve(username);
+        UI.showToast(`✅ ${username} approved!`, 'success');
+        renderUsersTab();
+      } catch(e) { UI.showToast('Error: ' + e.message, 'error'); }
+    };
+    window.rejectUser = async (username) => {
+      if (!confirm(`Reject and delete "${username}"?`)) return;
+      try {
+        await Api.Auth.reject(username);
+        UI.showToast(`${username} rejected.`, 'info');
+        renderUsersTab();
+      } catch(e) { UI.showToast('Error: ' + e.message, 'error'); }
+    };
+    window.refreshUsers = () => renderUsersTab();
 
     // Nav
     document.querySelectorAll('.nav-item').forEach(item =>
@@ -448,17 +531,6 @@ const AppController = (() => {
       await Promise.all([BinStore.init(), TruckStore.init()]);
       renderAll(); UI.showToast('Refreshed from database.', 'info');
     });
-    document.getElementById('randomizeBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('randomizeBtn');
-      btn.disabled = true; btn.textContent = '⏳ Randomizing…';
-      try {
-        const updated = await Api.Bins.randomize();
-        await BinStore.init(); renderAll();
-        if (mapInitialized) MapView.renderBins(BinStore.getAll());
-        UI.showToast(`🎲 Randomized ${updated.length} bins!`, 'success');
-      } catch (e) { UI.showToast('Failed: ' + e.message, 'error'); }
-      finally { btn.disabled = false; btn.textContent = '🎲 Randomize Data'; }
-    });
     document.getElementById('assignRoutesBtn').addEventListener('click', handleAssignRoutes);
     const crBtn = document.getElementById('clearReportsBtn');
     if (crBtn) crBtn.addEventListener('click', async () => { await ReportStore.refresh(); renderReports(); renderEmergencyAlerts(); });
@@ -468,6 +540,8 @@ const AppController = (() => {
 
     renderAll();
     renderEmergencyAlerts();
+    // Check for pending users on load
+    renderPendingDrivers();
   }
 
   document.addEventListener('DOMContentLoaded', () => init().catch(e => {
