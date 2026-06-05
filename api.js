@@ -5,8 +5,7 @@
  */
 
 const Api = (() => {
-  const BASE = 'http://localhost:3000/api';
-
+ const BASE = '/api';
   async function request(method, path, body) {
     try {
       const res = await fetch(BASE + path, {
